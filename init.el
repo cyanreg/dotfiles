@@ -18,9 +18,9 @@
      default))
  '(indent-tabs-mode nil)
  '(package-selected-packages
-   '(avy consult git-gutter-fringe gruber-darker-theme magit
-         markdown-mode multiple-cursors nasm-mode smart-mode-line
-         undo-tree visual-fill-column))
+   '(avy consult git-gutter-fringe gruber-darker-theme julia-ts-mode
+         magit markdown-mode multiple-cursors nasm-mode
+         smart-mode-line undo-tree visual-fill-column))
  '(tab-bar-auto-width t)
  '(tab-bar-auto-width-max '(300 24))
  '(tab-bar-close-button-show nil)
@@ -69,6 +69,7 @@
    (html "https://github.com/tree-sitter/tree-sitter-html")
    (css "https://github.com/tree-sitter/tree-sitter-css")
    (rust "https://github.com/tree-sitter/tree-sitter-rust")
+   (julia "https://github.com/tree-sitter/tree-sitter-julia")
    (python "https://github.com/tree-sitter/tree-sitter-python")))
 
 ;; M-x eval-buffer or M-: this to install all files
@@ -106,6 +107,8 @@
                                (display-fill-column-indicator-mode t)))
 (add-hook 'python-ts-mode-hook (lambda()
                                  (display-fill-column-indicator-mode t)))
+(add-hook 'julia-ts-mode-hook (lambda()
+                                (display-fill-column-indicator-mode t)))
 
 ;;Remap modes
 ;;===========
