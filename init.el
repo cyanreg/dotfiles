@@ -55,8 +55,11 @@
 ;;Undo tree
 ;;=========
 (require 'undo-tree)
-(setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/cache")))
 (global-undo-tree-mode)
+
+;;project stuff
+;;=============
+(require 'etags)
 
 ;;Treesitter
 ;;==========
@@ -92,20 +95,30 @@
                             (setq c-ts-mode-indent-offset 4)
 ;                            (setq c-ts-mode-set-style 'k&r)
                             (setq c-ts-mode-indent-style 'k&r)
+                            (etags-regen-mode t)
+                            (xref-etags-mode t)
                             (display-fill-column-indicator-mode t)))
 (add-hook 'c++-ts-mode-hook (lambda()
                               (setq c-ts-mode-indent-offset 4)
 ;                              (setq c-ts-mode-set-style 'k&r)
                               (setq c-ts-mode-indent-style 'k&r)
+                              (etags-regen-mode t)
+                              (xref-etags-mode t)
                               (display-fill-column-indicator-mode t)))
 (add-hook 'c-or-c++-ts-mode-hook (lambda()
                                    (setq c-ts-mode-indent-offset 4)
 ;                                   (setq c-ts-mode-set-style 'k&r)
                                    (setq c-ts-mode-indent-style 'k&r)
+                                   (etags-regen-mode t)
+                                   (xref-etags-mode t)
                                    (display-fill-column-indicator-mode t)))
 (add-hook 'rust-ts-mode-hook (lambda()
+                               (etags-regen-mode t)
+                               (xref-etags-mode t)
                                (display-fill-column-indicator-mode t)))
 (add-hook 'python-ts-mode-hook (lambda()
+                                 (etags-regen-mode t)
+                                 (xref-etags-mode t)
                                  (display-fill-column-indicator-mode t)))
 (add-hook 'julia-ts-mode-hook (lambda()
                                 (display-fill-column-indicator-mode t)))
@@ -136,6 +149,11 @@
 (add-to-list 'auto-mode-alist '("\\.frag\\'" . c-mode))
 (add-to-list 'auto-mode-alist '("\\.mesh\\'" . c-mode))
 (add-to-list 'auto-mode-alist '("\\.cl\\'"   . c-mode))
+
+;;Bikeshed spec mode
+;;==================
+(load "~/.emacs.d/bikeshed.el")
+(require 'bikeshed)
 
 ;;avy movement
 ;;============
@@ -378,6 +396,19 @@
 (global-set-key (kbd "C->")   'indent-rigidly-right-to-tab-stop)
 (global-set-key (kbd "C-<")   'indent-rigidly-left-to-tab-stop)
 
+;;Functions
+;;=========
+(defun list-active-modes ()
+  "Give a message of which minor modes are enabled in the current buffer."
+  (interactive)
+  (let ((active-modes))
+    (mapc (lambda (mode) (condition-case nil
+                             (if (and (symbolp mode) (symbol-value mode))
+                                 (add-to-list 'active-modes mode))
+                           (error nil) ))
+          minor-mode-list)
+    (message "Active modes are %s" active-modes)))
+
 ;;Startup time
 ;;============
 (defun efs/display-startup-time ()
@@ -386,7 +417,3 @@
             (float-time (time-subtract after-init-time before-init-time)))
              gcs-done))
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
-
-;;Bikeshed spec mode
-;;==================
-(load "~/.emacs.d/bikeshed.el")
