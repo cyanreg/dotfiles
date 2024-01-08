@@ -74,9 +74,29 @@
    (rust "https://github.com/tree-sitter/tree-sitter-rust")
    (julia "https://github.com/tree-sitter/tree-sitter-julia")
    (python "https://github.com/tree-sitter/tree-sitter-python")))
-
 ;; M-x eval-buffer or M-: this to install all files
 ;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+
+;;LSP
+;;===
+(setq eglot-sync-connect 0)
+(setq eglot-autoshutdown t)
+(setq eglot-ignored-server-capabilities '(:inlayHintProvider))
+(with-eval-after-load 'eglot
+ (add-to-list 'eglot-server-programs
+  '((c-ts-mode c++-ts-mode c-or-c++-ts-mode)
+     .("clangd-18"
+           "-j=3"
+;           "--inlay-hints"
+           "--log=error"
+           "--malloc-trim"
+           "--background-index"
+           "--clang-tidy"
+           "--cross-file-rename"
+           "--completion-style=detailed"
+           "--pch-storage=memory"
+           "--header-insertion=never"
+           "--header-insertion-decorators=false"))))
 
 ;;Custom styles
 ;;=============
@@ -97,6 +117,7 @@
                             (setq c-ts-mode-indent-style 'k&r)
                             (etags-regen-mode t)
                             (xref-etags-mode t)
+                            (eglot-ensure)
                             (display-fill-column-indicator-mode t)))
 (add-hook 'c++-ts-mode-hook (lambda()
                               (setq c-ts-mode-indent-offset 4)
@@ -104,6 +125,7 @@
                               (setq c-ts-mode-indent-style 'k&r)
                               (etags-regen-mode t)
                               (xref-etags-mode t)
+                              (eglot-ensure)
                               (display-fill-column-indicator-mode t)))
 (add-hook 'c-or-c++-ts-mode-hook (lambda()
                                    (setq c-ts-mode-indent-offset 4)
@@ -111,6 +133,7 @@
                                    (setq c-ts-mode-indent-style 'k&r)
                                    (etags-regen-mode t)
                                    (xref-etags-mode t)
+                                   (eglot-ensure)
                                    (display-fill-column-indicator-mode t)))
 (add-hook 'rust-ts-mode-hook (lambda()
                                (etags-regen-mode t)
@@ -330,8 +353,8 @@
 ;;================
 (require 'multiple-cursors)
 (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "M-/") 'mc/mark-previous-like-this)
-(global-set-key (kbd "M--") 'mc/mark-next-like-this)
+(global-set-key (kbd "M-<up>") 'mc/mark-previous-like-this)
+(global-set-key (kbd "M-<down>") 'mc/mark-next-like-this)
 
 ;;Various settings
 ;;================
