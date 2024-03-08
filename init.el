@@ -7,20 +7,15 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-enabled-themes '(smart-mode-line-respectful gruber-darker))
+ '(custom-enabled-themes '(smart-mode-line-respectful modus-vivendi-tinted))
  '(custom-safe-themes
-   '("34d7d26fef32567167570f85eefcc774f187a81e913972b8037259c5753836dc"
-     "e27c9668d7eddf75373fa6b07475ae2d6892185f07ebed037eedf783318761d7"
-     "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223"
-     "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa"
-     "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e"
-     "bddf21b7face8adffc42c32a8223c3cc83b5c1bbd4ce49a5743ce528ca4da2b6"
+   '("c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223"
      default))
  '(indent-tabs-mode nil)
  '(package-selected-packages
-   '(avy consult git-gutter-fringe gruber-darker-theme julia-ts-mode
-         magit markdown-mode multiple-cursors nasm-mode
-         smart-mode-line undo-tree visual-fill-column))
+   '(## avy consult expand-region git-gutter-fringe julia-ts-mode magit
+        markdown-mode multiple-cursors nasm-mode smart-mode-line
+        visual-fill-column))
  '(tab-bar-auto-width t)
  '(tab-bar-auto-width-max '(300 24))
  '(tab-bar-close-button-show nil)
@@ -31,14 +26,42 @@
  '(tab-bar-select-tab-modifiers '(control))
  '(tab-bar-show 1)
  '(tab-bar-tab-hints t)
- '(tab-bar-tab-name-truncated-max 24)
- '(undo-tree-visualizer-diff t))
+ '(tab-bar-tab-name-truncated-max 24))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+;;Useful shortcuts
+;;================
+;; M-m : go to the first whitespace char on line
+;; M-. : go to function def
+;; M-/ : autocomplete
+;; M-, : go back from the function def
+;; C-c TAB : smart function def list jump
+;; C-x n n : narrow (hide everything but region) look into using outline-minor-mode
+;; C-x n w : restore narrowing
+;; C-u C-space : jump back to previous whatever you were
+;; C-u <num> <char> : duplicate <char> <num> of times
+;; M-^ : move expression to prev line
+;; C-x r s <char> : copy region to register
+;; C-x r i <char> : copy register contents
+;; C-= : expand region (select progressively larger region from cursor)
+;; C-l : recenter screen onto cursor AND jump around occurences of the word under
+;; C-x 2 RET C-x 2 RET C-x + : create 3 equal windows
+
+;;Maintenance
+;;============
+;; Compile all existing packages:
+;; (native-compile-async "~/.emacs.d/elpa" 'recursively)
+
+;;Undo
+;;====
+(global-set-key (kbd "C-/") #'undo-only)
+(global-set-key (kbd "M-o") #'undo-redo)
+(global-set-key (kbd "M-p") #'undo)
 
 ;;Ido mode for quick file opening/buffer searching
 ;;================================================
@@ -52,10 +75,10 @@
 ;;============
 (tab-bar-mode t)
 
-;;Undo tree
-;;=========
-(require 'undo-tree)
-(global-undo-tree-mode)
+;;Region expansion
+;;================
+(require 'expand-region)
+(global-set-key (kbd "C-=") 'er/expand-region)
 
 ;;project stuff
 ;;=============
@@ -65,52 +88,67 @@
 ;;==========
 (require 'treesit)
 (setq treesit-language-source-alist
- '((c "https://github.com/tree-sitter/tree-sitter-c")
-   (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
-   (bash "https://github.com/tree-sitter/tree-sitter-bash")
-   (json "https://github.com/tree-sitter/tree-sitter-json")
-   (html "https://github.com/tree-sitter/tree-sitter-html")
-   (css "https://github.com/tree-sitter/tree-sitter-css")
-   (rust "https://github.com/tree-sitter/tree-sitter-rust")
-   (julia "https://github.com/tree-sitter/tree-sitter-julia")
-   (python "https://github.com/tree-sitter/tree-sitter-python")))
+  '((c "https://github.com/tree-sitter/tree-sitter-c")
+    (cpp "https://github.com/tree-sitter/tree-sitter-cpp")
+    (bash "https://github.com/tree-sitter/tree-sitter-bash")
+    (json "https://github.com/tree-sitter/tree-sitter-json")
+    (html "https://github.com/tree-sitter/tree-sitter-html")
+    (css "https://github.com/tree-sitter/tree-sitter-css")
+    (rust "https://github.com/tree-sitter/tree-sitter-rust")
+    (julia "https://github.com/tree-sitter/tree-sitter-julia")
+    (python "https://github.com/tree-sitter/tree-sitter-python")))
+
 ;; M-x eval-buffer or M-: this to install all files
-;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist)))
 
 ;;LSP
 ;;===
 (setq eglot-sync-connect 0)
 (setq eglot-autoshutdown t)
-(setq eglot-ignored-server-capabilities '(:inlayHintProvider))
+(setq eglot-ignored-server-capabilities '(
+                                          :inlayHintProvider
+                                          :documentFormattingProvider
+                                          :documentRangeFormattingProvider
+                                          :documentOnTypeFormattingProvider
+;                                          :documentLinkProvider
+;                                          :colorProvider
+;                                          :executeCommandProvider
+;                                          :codeLensProvider
+                                          :hoverProvider
+                                          :foldingRangeProvider
+                                          ))
+
 (with-eval-after-load 'eglot
- (add-to-list 'eglot-server-programs
-  '((c-ts-mode c++-ts-mode c-or-c++-ts-mode)
-     .("clangd-18"
-           "-j=3"
-;           "--inlay-hints"
-           "--log=error"
-           "--malloc-trim"
-           "--background-index"
-           "--clang-tidy"
-           "--cross-file-rename"
-           "--completion-style=detailed"
-           "--pch-storage=memory"
-           "--header-insertion=never"
-           "--header-insertion-decorators=false"))))
+  (add-to-list 'eglot-server-programs
+    '((c-ts-mode c++-ts-mode c-or-c++-ts-mode)
+      .("clangd-18"
+            "-j=3"
+;            "--inlay-hints"
+            "--log=error"
+            "--malloc-trim"
+            "--background-index"
+            "--clang-tidy"
+            "--cross-file-rename"
+            "--completion-style=detailed"
+            "--pch-storage=memory"
+            "--header-insertion=never"
+            "--header-insertion-decorators=false"))))
 
 ;;Custom styles
 ;;=============
-(c-add-style "ffmpeg" ; for C-like languages only, as for C, c-ts-mode is used
-             '("k&r"
-               (c-basic-offset . 4)
-               (indent-tabs-mode . nil)
-               (show-trailing-whitespace . t)
-               (c-offsets-alist
-                (statement-cont . (c-lineup-assignments +)))))
-(setq c-default-style "ffmpeg")
+;(c-add-style "ffmpeg" ; for C-like languages only, as for C, c-ts-mode is used
+;             '("k&r"
+;               (c-basic-offset . 4)
+;               (indent-tabs-mode . nil)
+;               (show-trailing-whitespace . t)
+;               (c-offsets-alist
+;                (statement-cont . (c-lineup-assignments +)))))
+;(setq c-default-style "ffmpeg")
 
 ;;Coding hooks
 ;;============
+(setq treesit-font-lock-level 3)
+
 (add-hook 'c-ts-mode-hook (lambda()
                             (setq c-ts-mode-indent-offset 4)
 ;                            (setq c-ts-mode-set-style 'k&r)
@@ -187,8 +225,8 @@
 
 ;;window navigation
 ;;=================
-(global-set-key (kbd "C-,") 'next-window-any-frame)
-(global-set-key (kbd "C-.") 'previous-window-any-frame)
+(global-set-key (kbd "C-,") 'previous-window-any-frame)
+(global-set-key (kbd "C-.") 'next-window-any-frame)
 
 ;;consult
 ;;=======
@@ -312,20 +350,79 @@
   ;; (setq consult-project-function nil)
 )
 
+;;ido jump to symbol
+;;==================
+(defun ido-goto-symbol (&optional symbol-list)
+  "Refresh imenu and jump to a place in the buffer using Ido."
+  (interactive)
+  (unless (featurep 'imenu)
+    (require 'imenu nil t))
+  (cond
+   ((not symbol-list)
+    (let ((ido-mode ido-mode)
+          (ido-enable-flex-matching
+           (if (boundp 'ido-enable-flex-matching)
+               ido-enable-flex-matching t))
+          name-and-pos symbol-names position)
+      (unless ido-mode
+        (ido-mode 1)
+        (setq ido-enable-flex-matching t))
+      (while (progn
+               (imenu--cleanup)
+               (setq imenu--index-alist nil)
+               (ido-goto-symbol (imenu--make-index-alist))
+               (setq selected-symbol
+                     (ido-completing-read "Symbol? " symbol-names))
+               (string= (car imenu--rescan-item) selected-symbol)))
+      (unless (and (boundp 'mark-active) mark-active)
+        (push-mark nil t nil))
+      (setq position (cdr (assoc selected-symbol name-and-pos)))
+      (cond
+       ((overlayp position)
+        (goto-char (overlay-start position)))
+       (t
+        (goto-char position)))))
+   ((listp symbol-list)
+    (dolist (symbol symbol-list)
+      (let (name position)
+        (cond
+         ((and (listp symbol) (imenu--subalist-p symbol))
+          (ido-goto-symbol symbol))
+         ((listp symbol)
+          (setq name (car symbol))
+          (setq position (cdr symbol)))
+         ((stringp symbol)
+          (setq name symbol)
+          (setq position
+                (get-text-property 1 'org-imenu-marker symbol))))
+        (unless (or (null position) (null name)
+                    (string= (car imenu--rescan-item) name))
+          (add-to-list 'symbol-names name)
+          (add-to-list 'name-and-pos (cons name position))))))))
+
+(global-set-key (kbd "C-c TAB") 'ido-goto-symbol)
+
 ;;git gutter
 ;;==========
 (require 'git-gutter-fringe)
-(define-fringe-bitmap 'git-gutter-fr:added    [#b11111110] nil nil '(center repeated))
-(define-fringe-bitmap 'git-gutter-fr:modified [#b11111110] nil nil '(center repeated))
-(define-fringe-bitmap 'git-gutter-fr:deleted  [#b11111110] nil nil '(center repeated))
+(define-fringe-bitmap 'git-gutter-fr:added    [#b00011111] nil nil '(center repeated))
+(define-fringe-bitmap 'git-gutter-fr:modified [#b00011111] nil nil '(center repeated))
+(define-fringe-bitmap 'git-gutter-fr:deleted  [#b00011111] nil nil '(center repeated))
 (defun enable-git-gutter nil
- "enable git gutter if file is under git"
- (when (eq (vc-backend (buffer-file-name)) 'Git)
-       (git-gutter-mode 1)))
+  "enable git gutter if file is under git"
+  (when (eq (vc-backend (buffer-file-name)) 'Git)
+        (git-gutter-mode 1)))
 
 ;;prog mode
 ;;=========
-(add-hook 'prog-mode-hook (lambda () (enable-git-gutter)))
+(defun turn-on-trailing-whitespace ()
+  "Turn on trailing whitespaces only where it makes sense."
+  (unless (memq major-mode '(shell-mode eshell-mode)) (setq show-trailing-whitespace t)))
+
+(add-hook 'prog-mode-hook
+  (lambda ()
+    (turn-on-trailing-whitespace)
+    (enable-git-gutter)))
 
 ;;Fountain mode
 ;;=============
@@ -342,12 +439,12 @@
 (add-hook 'org-mode-hook 'visual-fill-column-mode)
 (add-hook 'org-mode-hook (lambda () (setq fill-column 132)))
 (org-babel-do-load-languages
- 'org-babel-load-languages
- '((C . t)
-   (julia . t)
-   (python . t)
-   (emacs-lisp . t)
-   (org . t)))
+  'org-babel-load-languages
+  '((C . t)
+    (julia . t)
+    (python . t)
+    (emacs-lisp . t)
+    (org . t)))
 
 ;;Multiple cursors
 ;;================
@@ -358,27 +455,33 @@
 
 ;;Various settings
 ;;================
+(require 'uniquify)
+(setq package-native-compile t)
+(setq undo-limit 48000000)
+(setq undo-strong-limit 64000000)
+(setq undo-outer-limit 64000000)
+(scroll-bar-mode -1)
 (setq-default tab-width 4)
 (setq-default visual-fill-column-center-text t)        ;; Center text in fountain/org
 (setq-default display-fill-column-indicator-column 80) ;; 80 column guideline
 (setq column-number-mode t)                            ;; show column on modeline
 (setq global-visual-line-mode t)                       ;; better wrapping
 (setq initial-scratch-message nil)                     ;; hides stupid scratch msg
-(setq-default show-trailing-whitespace t)              ;; obvs
+;(setq-default show-trailing-whitespace t)              ;; obvs
 (show-paren-mode t)                                    ;; highlight matching
 (save-place-mode t)                                    ;; save file place
-(global-superword-mode t)                              ;; words with _ are one-word
+;(global-superword-mode t)                              ;; words with _ are one-word
 (menu-bar-mode -1)                                     ;; disable menubar
 (tool-bar-mode -1)                                     ;; disable toolbar
 (setq inhibit-startup-screen t)                        ;; no startup screen
 
-(setq-default electric-indent-inhibit t)
-(setq backward-delete-char-untabify-method 'hungry)
+;(setq-default electric-indent-inhibit t)
+;(setq backward-delete-char-untabify-method 'hungry)
 
 ;;smart modeline
 ;;==============
-(sml/setup)
 (setq sml/theme 'respectful)
+(sml/setup)
 (add-to-list 'sml/replacer-regexp-list '("^~/projects/" ":P:") t)
 
 ;;Enable pixel scrolling (disable for now...)
@@ -388,7 +491,7 @@
 ;;Fonts
 ;;=====
 (defvar efs/default-font-size 180)
-(defvar efs/default-variable-font-size 180)
+(defvar efs/default-variable-font-size 280)
 
 (set-face-attribute 'default nil :font "Iosevka (Lynne) Extended" :height efs/default-font-size)
 (set-face-attribute 'fixed-pitch nil :font "Iosevka (Lynne) Extended" :height efs/default-font-size)
@@ -435,8 +538,8 @@
 ;;Startup time
 ;;============
 (defun efs/display-startup-time ()
-    (message "Emacs loaded in %s with %d garbage collections."
-        (format "%.2f seconds"
+  (message "Emacs loaded in %s with %d garbage collections."
+    (format "%.2f seconds"
             (float-time (time-subtract after-init-time before-init-time)))
              gcs-done))
 (add-hook 'emacs-startup-hook #'efs/display-startup-time)
