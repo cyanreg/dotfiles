@@ -7,15 +7,28 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-enabled-themes '(smart-mode-line-respectful modus-vivendi-tinted))
+ '(custom-enabled-themes '(lorisan))
  '(custom-safe-themes
-   '("c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223"
+   '("1c502e5a8b9615342d64c1e2f80b39deadb10f3cbeb1660f254859483f9ac08f"
+     "d04d71fa27398bb5c18bb0e83eafe9dea91b1af00ac0b35f30341d9938e90cb3"
+     "70544543624ce5931b50dede8dd7d869f60255491bd7b269beaed3820ea29f21"
+     "eeba6d1b62eaa649a65d97a280307d712a9d5cb5beb98d8e250515e8b20b105e"
+     "db272a28fcccd3cf362a44de440dddc68c30d243a7e0832d73f05a29b7049002"
+     "3c83b3676d796422704082049fc38b6966bcad960f896669dfc21a7a37a748fa"
+     "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e"
+     "615512c6cb8d153839bb8d4a86281450a863318b109484ef483341874bdac13f"
+     "f7f89bfe1b18bdaf2223926fe171d5173bad65040b9d9f47bfa98d21426bd846"
+     "e9b9599306480aac67081594be6d1e24be525e956a185be071c730e30859a46c"
+     "ce0904225fb51ce10f117a504fae63f1a242adbe1d0c24718f715f9c046a8824"
+     "30b15e40530f943449852afd52abc1488a801032fcfbaedcc1a43d01ff3ab8af"
+     "514a00ea4ef98bc304101dc24ad91908d8a795d3c4548faa541c474c8e6c1c96"
+     "c74e83f8aa4c78a121b52146eadb792c9facc5b1f02c917e3dbb454fca931223"
      default))
  '(indent-tabs-mode nil)
  '(package-selected-packages
    '(## avy consult expand-region git-gutter-fringe julia-ts-mode magit
-        markdown-mode multiple-cursors nasm-mode smart-mode-line
-        visual-fill-column))
+        markdown-mode multiple-cursors nasm-mode visual-fill-column
+        yasnippet))
  '(tab-bar-auto-width t)
  '(tab-bar-auto-width-max '(300 24))
  '(tab-bar-close-button-show nil)
@@ -52,10 +65,21 @@
 ;; C-l : recenter screen onto cursor AND jump around occurences of the word under
 ;; C-x 2 RET C-x 2 RET C-x + : create 3 equal windows
 
+;;LSP
+;;
+
+;;Magit
+;; C-c C-c : accept commit message
+;; C-c C-k : cancel commit when writing message
+
 ;;Maintenance
 ;;============
 ;; Compile all existing packages:
 ;; (native-compile-async "~/.emacs.d/elpa" 'recursively)
+
+;;Theme
+;;=====
+(load "~/.emacs.d/lorisan-theme.el")
 
 ;;Undo
 ;;====
@@ -82,7 +106,36 @@
 
 ;;project stuff
 ;;=============
-(require 'etags)
+;(require 'etags)
+
+;;Session management
+;;==================
+(require 'desktop)
+
+(defvar my-desktop-session-dir "~/.emacs.d/sessions/")
+
+(defvar my-desktop-session-name-hist nil
+   "Desktop session name history")
+
+(defun my-desktop-save (&optional name)
+   "Save desktop with a name."
+   (interactive)
+   (unless name
+      (setq name (my-desktop-get-session-name "Save session as: ")))
+   (make-directory (concat my-desktop-session-dir name) t)
+   (desktop-save (concat my-desktop-session-dir name) t))
+
+(defun my-desktop-read (&optional name)
+   "Read desktop with a name."
+   (interactive)
+   (unless name
+      (setq name (my-desktop-get-session-name "Load session: ")))
+   (desktop-read (concat my-desktop-session-dir name)))
+
+(defun my-desktop-get-session-name (prompt)
+   (completing-read prompt (and (file-exists-p my-desktop-session-dir)
+                                (directory-files my-desktop-session-dir))
+                    nil nil nil my-desktop-session-name-hist))
 
 ;;Treesitter
 ;;==========
@@ -99,40 +152,48 @@
     (python "https://github.com/tree-sitter/tree-sitter-python")))
 
 ;; M-x eval-buffer or M-: this to install all files
-;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist)))
+;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+
+;;Yas
+;;===
+(add-to-list 'load-path "~/.emacs.d/snippets")
+(require 'yasnippet)
 
 ;;LSP
 ;;===
-(setq eglot-sync-connect 0)
-(setq eglot-autoshutdown t)
-(setq eglot-ignored-server-capabilities '(
-                                          :inlayHintProvider
-                                          :documentFormattingProvider
-                                          :documentRangeFormattingProvider
-                                          :documentOnTypeFormattingProvider
-;                                          :documentLinkProvider
-;                                          :colorProvider
-;                                          :executeCommandProvider
-;                                          :codeLensProvider
-                                          :hoverProvider
-                                          :foldingRangeProvider
-                                          ))
-
 (with-eval-after-load 'eglot
+  (setq eglot-sync-connect 0)
+  (setq eglot-autoshutdown t)
+  (setq eglot-extend-to-xref t)
+  (setq eglot-ignored-server-capabilities '(:inlayHintProvider
+;                                            :documentLinkProvider
+;                                            :colorProvider
+;                                            :executeCommandProvider
+;                                            :codeLensProvider
+;                                            :hoverProvider
+;                                            :foldingRangeProvider
+                                            :documentFormattingProvider
+                                            :documentRangeFormattingProvider
+                                            :documentOnTypeFormattingProvider))
   (add-to-list 'eglot-server-programs
     '((c-ts-mode c++-ts-mode c-or-c++-ts-mode)
       .("clangd-18"
-            "-j=3"
-;            "--inlay-hints"
-            "--log=error"
-            "--malloc-trim"
-            "--background-index"
-            "--clang-tidy"
-            "--cross-file-rename"
-            "--completion-style=detailed"
-            "--pch-storage=memory"
-            "--header-insertion=never"
-            "--header-insertion-decorators=false"))))
+          "-j=3"
+          "--compile-commands-dir=./build"
+;          "--inlay-hints"
+          "--log=verbose"
+          "--malloc-trim"
+          "--background-index"
+          "--clang-tidy"
+          "--all-scopes-completion"
+          "--completion-style=detailed"
+          "--rename-file-limit=0"
+          "--limit-references=0"
+          "--limit-results=0"
+          "--pch-storage=memory"
+          "--function-arg-placeholders"
+          "--header-insertion=never"
+          "--header-insertion-decorators=false"))))
 
 ;;Custom styles
 ;;=============
@@ -151,35 +212,27 @@
 
 (add-hook 'c-ts-mode-hook (lambda()
                             (setq c-ts-mode-indent-offset 4)
-;                            (setq c-ts-mode-set-style 'k&r)
+;                            (setq c-tlls-mode-set-style 'k&r)
                             (setq c-ts-mode-indent-style 'k&r)
-                            (etags-regen-mode t)
-                            (xref-etags-mode t)
                             (eglot-ensure)
                             (display-fill-column-indicator-mode t)))
 (add-hook 'c++-ts-mode-hook (lambda()
                               (setq c-ts-mode-indent-offset 4)
 ;                              (setq c-ts-mode-set-style 'k&r)
                               (setq c-ts-mode-indent-style 'k&r)
-                              (etags-regen-mode t)
-                              (xref-etags-mode t)
                               (eglot-ensure)
                               (display-fill-column-indicator-mode t)))
 (add-hook 'c-or-c++-ts-mode-hook (lambda()
                                    (setq c-ts-mode-indent-offset 4)
 ;                                   (setq c-ts-mode-set-style 'k&r)
                                    (setq c-ts-mode-indent-style 'k&r)
-                                   (etags-regen-mode t)
-                                   (xref-etags-mode t)
                                    (eglot-ensure)
                                    (display-fill-column-indicator-mode t)))
 (add-hook 'rust-ts-mode-hook (lambda()
-                               (etags-regen-mode t)
-                               (xref-etags-mode t)
                                (display-fill-column-indicator-mode t)))
 (add-hook 'python-ts-mode-hook (lambda()
-                                 (etags-regen-mode t)
-                                 (xref-etags-mode t)
+;                                 (etags-regen-mode t)
+;                                 (xref-etags-mode t)
                                  (display-fill-column-indicator-mode t)))
 (add-hook 'julia-ts-mode-hook (lambda()
                                 (display-fill-column-indicator-mode t)))
@@ -421,6 +474,7 @@
 
 (add-hook 'prog-mode-hook
   (lambda ()
+    (yas-minor-mode)
     (turn-on-trailing-whitespace)
     (enable-git-gutter)))
 
@@ -457,6 +511,8 @@
 ;;================
 (require 'uniquify)
 (setq package-native-compile t)
+
+(fset 'yes-or-no-p 'y-or-n-p)
 (setq undo-limit 48000000)
 (setq undo-strong-limit 64000000)
 (setq undo-outer-limit 64000000)
@@ -467,8 +523,8 @@
 (setq column-number-mode t)                            ;; show column on modeline
 (setq global-visual-line-mode t)                       ;; better wrapping
 (setq initial-scratch-message nil)                     ;; hides stupid scratch msg
-;(setq-default show-trailing-whitespace t)              ;; obvs
 (show-paren-mode t)                                    ;; highlight matching
+(setq blink-matching-paren nil)                        ;; only when offscreen, pointless and buggy
 (save-place-mode t)                                    ;; save file place
 ;(global-superword-mode t)                              ;; words with _ are one-word
 (menu-bar-mode -1)                                     ;; disable menubar
@@ -476,13 +532,7 @@
 (setq inhibit-startup-screen t)                        ;; no startup screen
 
 ;(setq-default electric-indent-inhibit t)
-;(setq backward-delete-char-untabify-method 'hungry)
-
-;;smart modeline
-;;==============
-(setq sml/theme 'respectful)
-(sml/setup)
-(add-to-list 'sml/replacer-regexp-list '("^~/projects/" ":P:") t)
+(setq backward-delete-char-untabify-method 'hungry)
 
 ;;Enable pixel scrolling (disable for now...)
 ;;======================
